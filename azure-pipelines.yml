@@ -9,19 +9,19 @@ steps:
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '8.x'   # Change if needed
+    version: '8.x'
     includePreviewVersions: true
 
-# Restore, Build, Test, Publish from the sample folder
+# Restore, Build, Test, Publish
 - script: |
     dotnet restore
     dotnet build --configuration Release
     dotnet test --configuration Release --no-build
     dotnet publish --configuration Release -o $(Build.ArtifactStagingDirectory)
-  workingDirectory: aspnetcore/tutorials/first-mvc-app/start-mvc/sample
+  workingDirectory: '$(Build.SourcesDirectory)/aspnetcore/tutorials/first-mvc-app/start-mvc/sample'
   displayName: 'Restore, Build, Test & Publish'
 
-# Publish artifacts for release pipeline
+# Publish artifacts
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
