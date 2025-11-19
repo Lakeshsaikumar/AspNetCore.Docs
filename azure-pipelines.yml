@@ -5,25 +5,25 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+# Install .NET SDK
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '8.x'   # Change to your required SDK version
+    version: '8.x'   # Change if needed
+    includePreviewVersions: true
 
-- script: dotnet restore aspnetcore/
-  displayName: 'Restore dependencies'
+# Restore, Build, Test, Publish from the sample folder
+- script: |
+    dotnet restore
+    dotnet build --configuration Release
+    dotnet test --configuration Release --no-build
+    dotnet publish --configuration Release -o $(Build.ArtifactStagingDirectory)
+  workingDirectory: aspnetcore/tutorials/first-mvc-app/start-mvc/sample
+  displayName: 'Restore, Build, Test & Publish'
 
-- script: dotnet build aspnetcore/ --configuration Release
-  displayName: 'Build project'
-
-- script: dotnet test aspnetcore/ --configuration Release --no-build
-  displayName: 'Run tests'
-
-- script: dotnet publish aspnetcore/ --configuration Release -o $(Build.ArtifactStagingDirectory)
-  displayName: 'Publish'
-
+# Publish artifacts for release pipeline
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'webapp'
-
+    ArtifactName: 'MvcSampleWebApp'
+    publishLocation: 'Container'
