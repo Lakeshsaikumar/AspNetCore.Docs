@@ -1,29 +1,45 @@
 trigger:
-- main
+- main   # or your default branch
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-# Install .NET SDK
-- task: UseDotNet@2
+# Restore NuGet packages for all projects
+- task: DotNetCoreCLI@2
+  displayName: 'Restore'
   inputs:
-    packageType: 'sdk'
-    version: '8.x'
-    includePreviewVersions: true
+    command: 'restore'
+    projects: '**/*.csproj'
 
-# Restore, Build, Test, Publish
-- script: |
-    dotnet restore
-    dotnet build --configuration Release
-    dotnet test --configuration Release --no-build
-    dotnet publish --configuration Release -o $(Build.ArtifactStagingDirectory)
-  workingDirectory: '$(Build.SourcesDirectory)/aspnetcore/tutorials/first-mvc-app/start-mvc/sample'
-  displayName: 'Restore, Build, Test & Publish'
+# Build all projects
+- task: DotNetCoreCLI@2
+  displayName: 'Build'
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration Release'
 
-# Publish artifacts
+# Run tests
+- task: DotNetCoreCLI@2
+  displayName: 'Test'
+  inputs:
+    command: 'test'
+    projects: '**/*.csproj'
+    arguments: '--configuration Release --no-build'
+
+# Publish artifacts (adjust project path if needed)
+- task: DotNetCoreCLI@2
+  displayName: 'Publish'
+  inputs:
+    command: 'publish'
+    projects: '**/*.csproj'
+    arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+
+# Upload published output as pipeline artifact
 - task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifacts'
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'MvcSampleWebApp'
+    ArtifactName: 'drop'
     publishLocation: 'Container'
