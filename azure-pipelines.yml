@@ -8,18 +8,22 @@ steps:
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
-    version: '8.x'
+    version: '8.x'   # Change to your required SDK version
 
-- script: dotnet restore
-  displayName: 'Restore'
+- script: dotnet restore aspnetcore/
+  displayName: 'Restore dependencies'
 
-- script: dotnet build --configuration Release
-  displayName: 'Build'
+- script: dotnet build aspnetcore/ --configuration Release
+  displayName: 'Build project'
 
-- script: dotnet publish --configuration Release -o $(Build.ArtifactStagingDirectory)
+- script: dotnet test aspnetcore/ --configuration Release --no-build
+  displayName: 'Run tests'
+
+- script: dotnet publish aspnetcore/ --configuration Release -o $(Build.ArtifactStagingDirectory)
   displayName: 'Publish'
 
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'webapp'
+
