@@ -1,49 +1,60 @@
 trigger:
-- main   # or your default branch
+- main
 
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  buildConfiguration: 'Release'
+
 steps:
-# Step 0: Install a modern .NET SDK (8.0)
+
+# Step 0: Checkout repository
+- checkout: self
+  clean: true
+  fetchDepth: 0
+  lfs: false
+  fetchTags: true
+
+# Step 1: Install .NET 6 SDK
 - task: UseDotNet@2
-  displayName: 'Install .NET 8 SDK'
+  displayName: 'Install .NET 6 SDK'
   inputs:
     packageType: 'sdk'
-    version: '8.0.x'
+    version: '6.0.x'
 
-# Step 1: Restore NuGet packages for modern samples only
+# Step 2: Restore all projects
 - task: DotNetCoreCLI@2
-  displayName: 'Restore modern samples'
+  displayName: 'Restore all projects'
   inputs:
     command: 'restore'
-    projects: 'aspnetcore/samples/**/*.csproj'
+    projects: 'aspnetcore/**/*.csproj'
 
-# Step 2: Build modern samples
+# Step 3: Build all projects
 - task: DotNetCoreCLI@2
-  displayName: 'Build modern samples'
+  displayName: 'Build all projects'
   inputs:
     command: 'build'
-    projects: 'aspnetcore/samples/**/*.csproj'
-    arguments: '--configuration Release'
+    projects: 'aspnetcore/**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
 
-# Step 3: Run tests in modern samples
+# Step 4: Run tests (if any)
 - task: DotNetCoreCLI@2
-  displayName: 'Test modern samples'
+  displayName: 'Test all projects'
   inputs:
     command: 'test'
-    projects: 'aspnetcore/samples/**/*.csproj'
-    arguments: '--configuration Release --no-build'
+    projects: 'aspnetcore/**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-build'
 
-# Step 4: Publish output from modern samples
+# Step 5: Publish all projects
 - task: DotNetCoreCLI@2
-  displayName: 'Publish modern samples'
+  displayName: 'Publish all projects'
   inputs:
     command: 'publish'
-    projects: 'aspnetcore/samples/**/*.csproj'
-    arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+    projects: 'aspnetcore/**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
-# Step 5: Upload published output as pipeline artifact
+# Step 6: Upload artifacts
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifacts'
   inputs:
